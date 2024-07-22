@@ -41,5 +41,15 @@ app.post('/api/data', async (req, res) => {
   }
 });
 
+// GET endpoint to retrieve data
+app.get('/api/data', async (req, res) => {
+  try {
+    const data = await Data.find();
+    res.json(data);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
