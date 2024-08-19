@@ -51,5 +51,36 @@ app.get('/api/data', async (req, res) => {
   }
 });
 
+
+///////////////////////////
+///////////////////////////
+const usersDataSchema = new mongoose.Schema({
+  name: String,
+  staffid: String,
+  email: String,
+})
+
+const Userdata = mongoose.model('Userdata', usersDataSchema);
+
+app.post('/api/userdata', async (req, res) => {
+  const {name, staffid, email} = req.body;
+
+  const newUserData = new Userdata({
+    name,
+    staffid,
+    email
+  });
+
+  try{
+    savedUserData = await newUserData.save();
+    res.json(savedUserData);
+  }catch(err) {
+    res.status(400).send(err);
+  }
+});
+///////////////////////////
+///////////////////////////
+
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
