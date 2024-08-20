@@ -78,6 +78,15 @@ app.post('/api/userdata', async (req, res) => {
     res.status(400).send(err);
   }
 });
+
+app.get('/api/userdata', async (req, res) => {
+  try {
+    const userinfo = await Userdata.find();
+    res.json(userinfo);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+});
 ///////////////////////////
 ///////////////////////////
 
