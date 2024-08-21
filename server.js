@@ -58,22 +58,24 @@ const usersDataSchema = new mongoose.Schema({
   name: String,
   staffid: String,
   email: String,
+  password: String,
 })
 
 const Userdata = mongoose.model('Userdata', usersDataSchema);
 
 app.post('/api/userdata', async (req, res) => {
-  const {name, staffid, email} = req.body;
+  const {name, staffid, email, password} = req.body;
 
   const newUserData = new Userdata({
     name,
     staffid,
-    email
+    email,
+    password
   });
 
   try{
     savedUserData = await newUserData.save();
-    res.json(savedUserData);
+    res.json("New User Successfully Created");
   }catch(err) {
     res.status(400).send(err);
   }
