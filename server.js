@@ -59,18 +59,20 @@ const usersDataSchema = new mongoose.Schema({
   staffid: String,
   email: String,
   password: String,
+  role: String,
 })
 
 const Userdata = mongoose.model('Userdata', usersDataSchema);
 
 app.post('/api/userdata', async (req, res) => {
-  const {name, staffid, email, password} = req.body;
+  const {name, staffid, email, password, role} = req.body;
 
   const newUserData = new Userdata({
     name,
     staffid,
     email,
-    password
+    password,
+    role
   });
 
   try{
@@ -91,6 +93,52 @@ app.get('/api/userdata', async (req, res) => {
 });
 ///////////////////////////
 ///////////////////////////
+
+
+
+//////////////////////////
+//////////////////////////
+
+// Delete a user by ID from Userdata collection
+app.delete('/api/userdata/:id', async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const result = await Userdata.findByIdAndDelete(userId);
+
+    if (result) {
+      res.status(200).json({ message: 'User deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Delete a record by ID from Data collection
+app.delete('/api/data/:_id', async (req, res) => {
+  try {
+      const recordId = req.params._id;
+
+      // Validate that the id is provided and is a valid ObjectId
+      if (!mongoose.Types.ObjectId.isValid(recordId)) {
+          return res.status(400).json({ message: 'Invalid ID format' });
+      }
+
+      const result = await Data.findByIdAndDelete(recordId);
+
+      if (result) {
+          res.status(200).json({ message: 'Record deleted successfully' });
+      } else {
+          res.status(404).json({ message: 'Record not found' });
+      }
+  } catch (error) {
+      console.error('Error deleting record:', error);
+      res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 
 
 const PORT = process.env.PORT || 5000;
