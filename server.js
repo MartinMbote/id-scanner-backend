@@ -100,9 +100,9 @@ app.get('/api/userdata', async (req, res) => {
 //////////////////////////
 
 // Delete a user by ID from Userdata collection
-app.delete('/api/userdata/:id', async (req, res) => {
+app.delete('/api/userdata/:_id', async (req, res) => {
   try {
-    const userId = req.params.id;
+    const userId = req.params._id;
     const result = await Userdata.findByIdAndDelete(userId);
 
     if (result) {
