@@ -104,18 +104,20 @@ app.get('/api/userdata', async (req, res) => {
 const appointmentsDataSchema = new mongoose.Schema({
   name: String,
   visiteemail: String,
-  email: String
+  email: String,
+  selectedDate: String,
 })
 
 const Appointmentsdata = mongoose.model('Appointmentsdata', appointmentsDataSchema);
 
 app.post('/api/appointmentsdata', async (req, res) => {
-  const {name, visiteemail, email} = req.body;
+  const {name, visiteemail, email, selectedDate} = req.body;
 
   const newAppointmentsData = new Appointmentsdata({
     name,
     visiteemail,
-    email
+    email,
+    selectedDate
   });
 
   try{
