@@ -17,20 +17,22 @@ const dataSchema = new mongoose.Schema({
   department: String,
   sharedString: String,
   idName: String,
-  dateTime: String
+  dateTime: String,
+  visitorTag: String,
 });
 
 const Data = mongoose.model('Data', dataSchema);
 
 // Updated POST endpoint to handle all the fields
 app.post('/api/data', async (req, res) => {
-  const { phone, department, sharedString, idName, dateTime } = req.body;
+  const { phone, department, sharedString, idName, dateTime, visitorTag } = req.body;
   const newData = new Data({
     phone,
     department,
     sharedString,
     idName,
-    dateTime
+    dateTime,
+    visitorTag
   });
 
   try {
@@ -96,10 +98,71 @@ app.get('/api/userdata', async (req, res) => {
 
 
 
+
+///////////////////////////
+///////////////////////////
+const appointmentsDataSchema = new mongoose.Schema({
+  name: String,
+  visiteemail: String,
+  email: String
+})
+
+const Appointmentsdata = mongoose.model('Appointmentsdata', appointmentsDataSchema);
+
+app.post('/api/appointmentsdata', async (req, res) => {
+  const {name, visiteemail, email} = req.body;
+
+  const newAppointmentsData = new Appointmentsdata({
+    name,
+    visiteemail,
+    email
+  });
+
+  try{
+    savedAppointmentsData = await newAppointmentsData.save();
+    res.json("New User Successfully Created");
+  }catch(err) {
+    res.status(400).send(err);
+  }
+});
+
+app.get('/api/appointmentsdata', async (req, res) => {
+  try {
+    const appointmentsinfo = await Appointmentsdata.find();
+    res.json(appointmentsinfo);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+});
+///////////////////////////
+///////////////////////////
+
+
+
+
+
 //////////////////////////
 //////////////////////////
 
 // Delete a user by ID from Userdata collection
+app.delete('/api/appointmentsdata/:_id', async (req, res) => {
+  try {
+    const userId = req.params._id;
+    const result = await Appointmentsdata.findByIdAndDelete(userId);
+
+    if (result) {
+      res.status(200).json({ message: 'User deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+// Delete a appointment by ID from Userdata collection
 app.delete('/api/userdata/:_id', async (req, res) => {
   try {
     const userId = req.params._id;
@@ -115,6 +178,7 @@ app.delete('/api/userdata/:_id', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 // Delete a record by ID from Data collection
 app.delete('/api/data/:_id', async (req, res) => {
