@@ -19,6 +19,7 @@ const dataSchema = new mongoose.Schema({
   idName: String,
   dateTime: String,
   visitorTag: String,
+  cleared: String,
 });
 
 const Data = mongoose.model('Data', dataSchema);
@@ -52,6 +53,77 @@ app.get('/api/data', async (req, res) => {
     res.status(400).send(err);
   }
 });
+
+
+////////////////////////migration////////////////////////
+const dataSchemaB = new mongoose.Schema({
+  phone: String,
+  department: String,
+  sharedString: String,
+  idName: String,
+  dateTime: String,
+  visitorTag: String,
+  cleared: String,
+});
+
+const DataB = mongoose.model('DataB', dataSchemaB);
+
+// Route to move a document from CollectionA to CollectionB
+app.post('/api/migrate', async (req, res) => {
+  try {
+      const documentId = req.body.id;
+
+      // Find the document in CollectionA
+      const document = await Data.findById(documentId);
+
+      if (!document) {
+          return res.status(404).json({ message: 'Document not found' });
+      }
+
+      // Save the document to CollectionB
+      const migratedDocument = new DataB(document.toObject());
+      await migratedDocument.save();
+
+      // Remove the document from CollectionA
+      await Data.findByIdAndDelete(documentId);
+
+      res.json({ message: 'Document migrated successfully' });
+  } catch (error) {
+      res.status(500).json({ message: error.message });
+      console.log(error.message);
+  }
+});
+////////////////////////migration////////////////////////
+/////////////////////////////////////////////////////////
+
+
+
+
+////////////////////////Add cleared fiel to mongodb documents////////////////////////
+app.put('/api/data/:id', async (req, res) => {
+  const { id } = req.params; // The document ID from the URL
+  const { cleared } = req.body; // The cleared status from the request body
+
+  try {
+    // Find the document by ID and update the cleared field
+    const updatedData = await Data.findByIdAndUpdate(
+      id, // The ID of the document to update
+      { $set: { cleared: cleared || 'yes' } }, // Set the cleared field to 'yes'
+      { new: true } // Return the updated document
+    );
+
+    if (!updatedData) {
+      return res.status(404).json({ message: 'Data not found' });
+    }
+
+    res.json(updatedData);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+});
+////////////////////////add cleared////////////////////////
+///////////////////////////////////////////////////////////
+
 
 
 ///////////////////////////
