@@ -55,6 +55,44 @@ app.get('/api/data', async (req, res) => {
 });
 
 
+/////////////////////////////////////////////////////////
+//////////////////Add Departments///////////////////////
+
+const departmentsDtaSchema = new mongoose.Schema({
+  departmentName: String,  
+});
+
+const Departmentsdata = mongoose.model('Departmentsdata', departmentsDtaSchema);
+
+// Updated POST endpoint to handle all the fields
+app.post('/api/departmentsdata', async (req, res) => {
+  const { departmentName } = req.body;
+  const newDepartmentsData = new Departmentsdata({
+    departmentName
+  });
+
+  try {
+    const savedData = await newDepartmentsData.save();
+    res.json(savedData);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+});
+
+// GET endpoint to retrieve data
+app.get('/api/departmentsdata', async (req, res) => {
+  try {
+    const data = await Departmentsdata.find();
+    res.json(data);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+});
+
+/////////////////////Departments////////////////////////
+///////////////////////////////////////////////////////
+
+
 ////////////////////////migration////////////////////////
 const dataSchemaB = new mongoose.Schema({
   phone: String,
