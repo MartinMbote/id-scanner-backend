@@ -93,6 +93,46 @@ app.get('/api/departmentsdata', async (req, res) => {
 ///////////////////////////////////////////////////////
 
 
+
+/////////////////////////////////////////////////////////
+//////////////////Add Departments///////////////////////
+
+const visitorsBadgeSchema = new mongoose.Schema({
+  visitorsBadge: String,  
+});
+
+const Visitorsbadgedata = mongoose.model('Visitorsbadgedata', visitorsBadgeSchema);
+
+// Updated POST endpoint to handle all the fields
+app.post('/api/visitorsbadges', async (req, res) => {
+  const { visitorsBadge } = req.body;
+  const newVisitorsBadgeData = new Visitorsbadgedata({
+    visitorsBadge
+  });
+
+  try {
+    const savedData = await newVisitorsBadgeData.save();
+    res.json(savedData);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+});
+
+// GET endpoint to retrieve data
+app.get('/api/visitorsbadges', async (req, res) => {
+  try {
+    const data = await Visitorsbadgedata.find();
+    res.json(data);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+});
+
+/////////////////////Departments////////////////////////
+///////////////////////////////////////////////////////
+
+
+
 ////////////////////////migration////////////////////////
 const dataSchemaB = new mongoose.Schema({
   phone: String,
