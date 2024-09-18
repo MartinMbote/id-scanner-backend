@@ -292,6 +292,24 @@ app.delete('/api/userdata/:_id', async (req, res) => {
 });
 
 
+// Delete a department by ID from Departments collection
+app.delete('/api/departmentsdata/:_id', async (req, res) => {
+  try {
+    const userId = req.params._id;
+    const result = await Departmentsdata.findByIdAndDelete(userId);
+
+    if (result) {
+      res.status(200).json({ message: 'Department deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'Department not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting Department:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
 // Delete a record by ID from Data collection
 app.delete('/api/data/:_id', async (req, res) => {
   try {
