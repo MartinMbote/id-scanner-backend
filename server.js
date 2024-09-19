@@ -95,7 +95,7 @@ app.get('/api/departmentsdata', async (req, res) => {
 
 
 /////////////////////////////////////////////////////////
-//////////////////Add Departments///////////////////////
+//////////////////Add Visitors Badge///////////////////////
 
 const visitorsBadgeSchema = new mongoose.Schema({
   visitorsBadge: String,  
@@ -128,7 +128,27 @@ app.get('/api/visitorsbadges', async (req, res) => {
   }
 });
 
-/////////////////////Departments////////////////////////
+// Example using Express.js and Mongoose
+app.put('/api/visitorsbadges/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    const updatedBadge = await Visitorsbadgedata.findByIdAndUpdate(
+      id,
+      { chosen: true },
+      { new: true }
+    );
+
+    if (!updatedBadge) {
+      return res.status(404).json({ error: 'Badge not found' });
+    }
+
+    res.status(200).json(updatedBadge);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update department' });
+  }
+});
+
+/////////////////////Visitors Badge////////////////////////
 ///////////////////////////////////////////////////////
 
 
@@ -342,6 +362,24 @@ app.delete('/api/departmentsdata/:_id', async (req, res) => {
       res.status(200).json({ message: 'Department deleted successfully' });
     } else {
       res.status(404).json({ message: 'Department not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting Department:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+
+// Delete a visitors badges by ID from badges collection
+app.delete('/api/visitorsbadges/:_id', async (req, res) => {
+  try {
+    const userId = req.params._id;
+    const result = await Visitorsbadgedata.findByIdAndDelete(userId);
+
+    if (result) {
+      res.status(200).json({ message: 'Badge deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'Badge not found' });
     }
   } catch (error) {
     console.error('Error deleting Department:', error);
