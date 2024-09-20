@@ -20,20 +20,22 @@ const dataSchema = new mongoose.Schema({
   dateTime: String,
   visitorTag: String,
   cleared: String,
+  badgeId: String,
 });
 
 const Data = mongoose.model('Data', dataSchema);
 
 // Updated POST endpoint to handle all the fields
 app.post('/api/data', async (req, res) => {
-  const { phone, department, sharedString, idName, dateTime, visitorTag } = req.body;
+  const { phone, department, sharedString, idName, dateTime, visitorTag, badgeId } = req.body;
   const newData = new Data({
     phone,
     department,
     sharedString,
     idName,
     dateTime,
-    visitorTag
+    visitorTag,
+    badgeId
   });
 
   try {
@@ -99,15 +101,17 @@ app.get('/api/departmentsdata', async (req, res) => {
 
 const visitorsBadgeSchema = new mongoose.Schema({
   visitorsBadge: String,  
+  chosen: String,
 });
 
 const Visitorsbadgedata = mongoose.model('Visitorsbadgedata', visitorsBadgeSchema);
 
 // Updated POST endpoint to handle all the fields
 app.post('/api/visitorsbadges', async (req, res) => {
-  const { visitorsBadge } = req.body;
+  const { visitorsBadge, chosen } = req.body;
   const newVisitorsBadgeData = new Visitorsbadgedata({
-    visitorsBadge
+    visitorsBadge,
+    chosen
   });
 
   try {
@@ -131,12 +135,15 @@ app.get('/api/visitorsbadges', async (req, res) => {
 // Example using Express.js and Mongoose
 app.put('/api/visitorsbadges/:id', async (req, res) => {
   const { id } = req.params;
+  const { chosen } = req.body; // Get the 'chosen' value from the request body
+
   try {
+    // Find the document by ID and update the cleared field
     const updatedBadge = await Visitorsbadgedata.findByIdAndUpdate(
-      id,
-      { chosen: true },
-      { new: true }
-    );
+      id, // The ID of the document to update
+      { $set: { chosen: String(chosen) } }, // Set the chosen field to the value from the request
+      { new: true } // Return the updated document
+    );  
 
     if (!updatedBadge) {
       return res.status(404).json({ error: 'Badge not found' });
