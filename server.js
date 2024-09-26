@@ -2,6 +2,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const app = express();
+const nodemailer = require('nodemailer');
+require('dotenv').config();   //to load the .env variables
 
 app.use(cors());
 app.use(express.json());
@@ -419,6 +421,37 @@ app.delete('/api/data/:_id', async (req, res) => {
 });
 
 
+//////////////////////////////Email Serrvices////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+const transporter = nodemailer.createTransport({
+  host: "smtp.ethereal.email",
+  port: 587,
+  secure: false, // true for port 465, false for other ports
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+app.post('/send-email', (req, res) => {
+  const { email, subject, message } = req.body;
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: subject,
+    text: message,
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      return res.status(500).send(error.toString());
+    }
+    res.status(200).send('Email sent: ' + info.response);
+  });
+});
+//////////////////////////////Email Serrvices////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
