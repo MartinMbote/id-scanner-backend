@@ -421,7 +421,7 @@ app.delete('/api/data/:_id', async (req, res) => {
 });
 
 
-//////////////////////////////Email Serrvices////////////////////////////////////////
+//////////////////////////////Email Serrvices - Adding Users/////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
 const transporter = nodemailer.createTransport({
   host: "smtp.ethereal.email",
@@ -444,6 +444,40 @@ app.post('/send-email', (req, res) => {
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      return res.status(500).send(error.toString());
+    }
+    res.status(200).send('Email sent: ' + info.response);
+  });
+});
+//////////////////////////////Email Serrvices////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+
+
+
+//////////////////////////////Email Serrvices - Adding Appointments//////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+const appointmentTransporter = nodemailer.createTransport({
+  host: "smtp.ethereal.email",
+  port: 587,
+  secure: false, // true for port 465, false for other ports
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS,
+  },
+});
+
+app.post('/send-appointment-email', (req, res) => {
+  const { email, subject, message } = req.body;
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: subject,
+    text: message,
+  };
+
+  appointmentTransporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       return res.status(500).send(error.toString());
     }
