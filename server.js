@@ -4,6 +4,8 @@ const cors = require('cors');
 const app = express();
 const nodemailer = require('nodemailer');
 require('dotenv').config();   //to load the .env variables
+const Cryptr = require("cryptr");
+const cryptr = new Cryptr(process.env.SECRET_KEY);
 
 app.use(cors());
 app.use(express.json());
@@ -292,11 +294,17 @@ const Appointmentsdata = mongoose.model('Appointmentsdata', appointmentsDataSche
 app.post('/api/appointmentsdata', async (req, res) => {
   const {name, visiteemail, email, selectedDate} = req.body;
 
+  // Encrypt individual fields
+  const encryptedName = cryptr.encrypt(name);
+  const encryptedVisiteEmail = cryptr.encrypt(visiteemail);
+  const encryptedEmail = cryptr.encrypt(email);
+  const encryptedSelectedDate = cryptr.encrypt(selectedDate);
+
   const newAppointmentsData = new Appointmentsdata({
-    name,
-    visiteemail,
-    email,
-    selectedDate
+    name: encryptedName,
+    visiteemail: encryptedVisiteEmail,
+    email: encryptedEmail,
+    selectedDate: encryptedSelectedDate
   });
 
   try{
@@ -440,7 +448,7 @@ app.post('/send-email', (req, res) => {
     from: process.env.EMAIL_USER,
     to: email,
     subject: subject,
-    text: message,
+    html: message,
   };
 
   transporter.sendMail(mailOptions, (error, info) => {
@@ -474,7 +482,7 @@ app.post('/send-appointment-email', (req, res) => {
     from: process.env.EMAIL_USER,
     to: email,
     subject: subject,
-    text: message,
+    html: message,
   };
 
   appointmentTransporter.sendMail(mailOptions, (error, info) => {
