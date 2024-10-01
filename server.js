@@ -315,14 +315,43 @@ app.post('/api/appointmentsdata', async (req, res) => {
   }
 });
 
+// app.get('/api/appointmentsdata', async (req, res) => {
+//   try {
+//     const appointmentsinfo = await Appointmentsdata.find();
+//     res.json(appointmentsinfo);
+//   } catch (err) {
+//     res.status(400).send(err);
+//   }
+// });
+
 app.get('/api/appointmentsdata', async (req, res) => {
   try {
     const appointmentsinfo = await Appointmentsdata.find();
-    res.json(appointmentsinfo);
+    
+    // Decrypt each appointment's fields
+    const decryptedAppointments = appointmentsinfo.map(appointment => {
+      try {
+        return {
+          name: cryptr.decrypt(appointment.name),
+          visiteemail: cryptr.decrypt(appointment.visiteemail),
+          email: cryptr.decrypt(appointment.email),
+          selectedDate: cryptr.decrypt(appointment.selectedDate)
+        };
+      } catch (decryptError) {
+        console.error('Decryption error:', decryptError);
+        return null; // Skip this appointment if decryption fails
+      }
+    }).filter(appointment => appointment !== null); // Filter out failed decryption
+
+    // Send the decrypted data
+    res.json(decryptedAppointments);
   } catch (err) {
-    res.status(400).send(err);
+    console.error('Error fetching appointments:', err);
+    res.status(400).send('Error fetching appointments');
   }
 });
+
+
 ///////////////////////////
 ///////////////////////////
 
