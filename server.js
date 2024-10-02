@@ -313,8 +313,8 @@ app.put('/api/data/:id', async (req, res) => {
 
 
 
-///////////////////////////
-///////////////////////////
+///////////////////////////ADD USERS///////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
 const usersDataSchema = new mongoose.Schema({
   name: String,
   staffid: String,
@@ -328,11 +328,17 @@ const Userdata = mongoose.model('Userdata', usersDataSchema);
 app.post('/api/userdata', async (req, res) => {
   const {name, staffid, email, password, role} = req.body;
 
+  // Encrypt individual fields
+  const encryptedName = cryptr.encrypt(name);
+  const encryptedStaffid = cryptr.encrypt(staffid);
+  const encryptedEmail = cryptr.encrypt(email);
+  const encryptedPassword = cryptr.encrypt(password);  
+
   const newUserData = new Userdata({
-    name,
-    staffid,
-    email,
-    password,
+    name: encryptedName,
+    staffid: encryptedStaffid,
+    email: encryptedEmail,
+    password: encryptedPassword,
     role
   });
 
@@ -344,22 +350,49 @@ app.post('/api/userdata', async (req, res) => {
   }
 });
 
+// app.get('/api/userdata', async (req, res) => {
+//   try {
+//     const userinfo = await Userdata.find();
+//     res.json(userinfo);
+//   } catch (err) {
+//     res.status(400).send(err);
+//   }
+// });
+
 app.get('/api/userdata', async (req, res) => {
   try {
     const userinfo = await Userdata.find();
-    res.json(userinfo);
+
+    // Decrypt each of the Visitor's fields
+    const decryptedUsersInfo = userinfo.map(user => {
+      try {
+        return {
+          name: cryptr.decrypt(user.name),
+          staffid: cryptr.decrypt(user.staffid),
+          email: cryptr.decrypt(user.email),
+          password: cryptr.decrypt(user.password),
+          role: user.role
+        };
+      } catch (decryptError) {
+        console.error('Decryption error:', decryptError);
+        return null; // Skip this appointment if decryption fails
+      }
+    }).filter(user => user !== null); // Filter out failed decryption
+
+    // Send the decrypted data
+    res.json(decryptedUsersInfo);
   } catch (err) {
     res.status(400).send(err);
   }
 });
-///////////////////////////
-///////////////////////////
+///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
 
 
 
 
-///////////////////////////
-///////////////////////////
+///////////////////////////ADD APPOINTMENTS + ENCRYPTION////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
 const appointmentsDataSchema = new mongoose.Schema({
   name: String,
   visiteemail: String,
@@ -376,13 +409,13 @@ app.post('/api/appointmentsdata', async (req, res) => {
   const encryptedName = cryptr.encrypt(name);
   const encryptedVisiteEmail = cryptr.encrypt(visiteemail);
   const encryptedEmail = cryptr.encrypt(email);
-  const encryptedSelectedDate = cryptr.encrypt(selectedDate);
+  // const encryptedSelectedDate = cryptr.encrypt(selectedDate);
 
   const newAppointmentsData = new Appointmentsdata({
     name: encryptedName,
     visiteemail: encryptedVisiteEmail,
     email: encryptedEmail,
-    selectedDate: encryptedSelectedDate
+    selectedDate
   });
 
   try{
@@ -413,7 +446,7 @@ app.get('/api/appointmentsdata', async (req, res) => {
           name: cryptr.decrypt(appointment.name),
           visiteemail: cryptr.decrypt(appointment.visiteemail),
           email: cryptr.decrypt(appointment.email),
-          selectedDate: cryptr.decrypt(appointment.selectedDate)
+          selectedDate: appointment.selectedDate
         };
       } catch (decryptError) {
         console.error('Decryption error:', decryptError);
@@ -430,9 +463,8 @@ app.get('/api/appointmentsdata', async (req, res) => {
 });
 
 
-///////////////////////////
-///////////////////////////
-
+////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////
 
 
 
