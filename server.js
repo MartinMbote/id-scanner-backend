@@ -32,13 +32,23 @@ const Data = mongoose.model('Data', dataSchema);
 // Updated POST endpoint to handle all the fields
 app.post('/api/data', async (req, res) => {
   const { phone, department, sharedString, idName, dateTime, visitorTag, badgeId } = req.body;
+
+  // Encrypt individual fields
+  const encryptedPhone = cryptr.encrypt(phone);
+  // const encryptedDepartmentl = cryptr.encrypt(department);
+  const encryptedSharedString = cryptr.encrypt(sharedString);
+  const encryptedIdName = cryptr.encrypt(idName);
+  // const encryptedDateTime = cryptr.encrypt(dateTime);
+  // const encryptedVisitorTag = cryptr.encrypt(visitorTag);
+  // const encryptedBadgeId = cryptr.encrypt(badgeId);
+
   const newData = new Data({
-    phone,
+    phone: encryptedPhone,
     department,
-    sharedString,
-    idName,
+    sharedString: encryptedSharedString,
+    idName: encryptedIdName,
     dateTime,
-    visitorTag,
+    visitorTag,    
     badgeId
   });
 
@@ -54,11 +64,79 @@ app.post('/api/data', async (req, res) => {
 app.get('/api/data', async (req, res) => {
   try {
     const data = await Data.find();
-    res.json(data);
+
+    // Decrypt each of the Visitor's fields
+    const decryptedVisitorInfo = data.map(visitor => {
+      try {
+        return {
+          _id: visitor._id,
+          phone: cryptr.decrypt(visitor.phone),
+          department: visitor.department,
+          sharedString: cryptr.decrypt(visitor.sharedString),
+          idName: cryptr.decrypt(visitor.idName),
+          dateTime: visitor.dateTime,
+          visitorTag: visitor.visitorTag,
+          cleared: visitor.cleared,
+          badgeId: visitor.badgeId
+        };
+      } catch (decryptError) {
+        console.error('Decryption error:', decryptError);
+        return null; // Skip this appointment if decryption fails
+      }
+    }).filter(visitor => visitor !== null); // Filter out failed decryption
+
+    // Send the decrypted data
+    res.json(decryptedVisitorInfo);
   } catch (err) {
     res.status(400).send(err);
   }
 });
+
+
+// // Updated schema to include all necessary fields
+// const dataSchema = new mongoose.Schema({
+//   phone: String,
+//   department: String,
+//   sharedString: String,
+//   idName: String,
+//   dateTime: String,
+//   visitorTag: String,
+//   cleared: String,
+//   badgeId: String,
+// });
+
+// const Data = mongoose.model('Data', dataSchema);
+
+// // Updated POST endpoint to handle all the fields
+// app.post('/api/data', async (req, res) => {
+//   const { phone, department, sharedString, idName, dateTime, visitorTag, badgeId } = req.body;
+//   const newData = new Data({
+//     phone,
+//     department,
+//     sharedString,
+//     idName,
+//     dateTime,
+//     visitorTag,
+//     badgeId
+//   });
+
+//   try {
+//     const savedData = await newData.save();
+//     res.json(savedData);
+//   } catch (err) {
+//     res.status(400).send(err);
+//   }
+// });
+
+// // GET endpoint to retrieve data
+// app.get('/api/data', async (req, res) => {
+//   try {
+//     const data = await Data.find();
+//     res.json(data);
+//   } catch (err) {
+//     res.status(400).send(err);
+//   }
+// });
 
 
 /////////////////////////////////////////////////////////
