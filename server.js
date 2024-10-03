@@ -367,6 +367,7 @@ app.get('/api/userdata', async (req, res) => {
     const decryptedUsersInfo = userinfo.map(user => {
       try {
         return {
+          _id: user._id,
           name: cryptr.decrypt(user.name),
           staffid: cryptr.decrypt(user.staffid),
           email: cryptr.decrypt(user.email),
@@ -443,6 +444,7 @@ app.get('/api/appointmentsdata', async (req, res) => {
     const decryptedAppointments = appointmentsinfo.map(appointment => {
       try {
         return {
+          _id: appointment._id,
           name: cryptr.decrypt(appointment.name),
           visiteemail: cryptr.decrypt(appointment.visiteemail),
           email: cryptr.decrypt(appointment.email),
@@ -472,7 +474,7 @@ app.get('/api/appointmentsdata', async (req, res) => {
 //////////////////////////
 //////////////////////////
 
-// Delete a user by ID from Userdata collection
+// Delete an appointment by ID from Appointmentsdata collection
 app.delete('/api/appointmentsdata/:_id', async (req, res) => {
   try {
     const userId = req.params._id;
@@ -490,7 +492,7 @@ app.delete('/api/appointmentsdata/:_id', async (req, res) => {
 });
 
 
-// Delete a appointment by ID from Userdata collection
+// Delete user by ID from Userdata collection
 app.delete('/api/userdata/:_id', async (req, res) => {
   try {
     const userId = req.params._id;
