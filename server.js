@@ -6,6 +6,9 @@ const nodemailer = require('nodemailer');
 require('dotenv').config();   //to load the .env variables
 const Cryptr = require("cryptr");
 const cryptr = new Cryptr(process.env.SECRET_KEY);
+const jwt = require('jsonwebtoken');
+const bodyParser = require('body-parser');
+require('dotenv').config();
 
 app.use(cors());
 app.use(express.json());
@@ -636,5 +639,45 @@ app.post('/send-appointment-email', (req, res) => {
 //////////////////////////////Email Serrvices////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
 
+
+
+////////////////////////////// AUTHENTICATION ////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+const users = require('./users');
+
+app.use(bodyParser.json());
+
 const PORT = process.env.PORT || 5000;
+const SECRET = process.env.JWT_SECRET || 'supersecretkey';
+
+// Login route
+app.post('/login', (req, res) => {
+  const { email, password } = req.body;
+
+  const user = users.find(u => u.email === email && u.password === password);
+
+  if (!user) {
+    return res.status(401).json({ message: 'Invalid credentials' });
+  }
+
+  const payload = {
+    id: user.id,
+    email: user.email,
+    role: user.role,
+  };
+
+  const token = jwt.sign(payload, SECRET, { expiresIn: '1h' });
+
+  res.json({ token });
+});
+
+// Test endpoint
+app.get('/', (req, res) => {
+  res.send('API running...');
+});
+////////////////////////////// AUTHENTICATION ////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////
+
+
+// const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
