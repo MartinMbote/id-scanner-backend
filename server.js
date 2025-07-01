@@ -318,6 +318,8 @@ app.put('/api/data/:id', async (req, res) => {
 
 ///////////////////////////ADD USERS///////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////
+const bcrypt = require('bcrypt');
+
 const usersDataSchema = new mongoose.Schema({
   name: String,
   staffid: String,
@@ -335,18 +337,21 @@ app.post('/api/userdata', async (req, res) => {
   const encryptedName = cryptr.encrypt(name);
   const encryptedStaffid = cryptr.encrypt(staffid);
   const encryptedEmail = cryptr.encrypt(email);
-  const encryptedPassword = cryptr.encrypt(password);  
+  // const encryptedPassword = cryptr.encrypt(password);  
+  const hashedPassword = await bcrypt.hash(password, 10); // Password is hashed instead of encrypt
 
   const newUserData = new Userdata({
     name: encryptedName,
     staffid: encryptedStaffid,
     email: encryptedEmail,
-    password: encryptedPassword,
+    // password: encryptedPassword,
+    password: hashedPassword, // store hashed password
     role
   });
 
   try{
-    savedUserData = await newUserData.save();
+    // savedUserData = await newUserData.save();
+    await newUserData.save();
     res.json("New User Successfully Created");
   }catch(err) {
     res.status(400).send(err);
@@ -374,7 +379,8 @@ app.get('/api/userdata', async (req, res) => {
           name: cryptr.decrypt(user.name),
           staffid: cryptr.decrypt(user.staffid),
           email: cryptr.decrypt(user.email),
-          password: cryptr.decrypt(user.password),
+          // password: cryptr.decrypt(user.password),
+          password: user.password,
           role: user.role
         };
       } catch (decryptError) {
@@ -643,7 +649,7 @@ app.post('/send-appointment-email', (req, res) => {
 
 ////////////////////////////// AUTHENTICATION ////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////
-const users = require('./users');
+// const users = require('./users');
 
 app.use(bodyParser.json());
 
@@ -651,29 +657,49 @@ const PORT = process.env.PORT || 5000;
 const SECRET = process.env.JWT_SECRET || 'supersecretkey';
 
 // Login route
-app.post('/login', (req, res) => {
-  const { email, password } = req.body;
+app.post('/login', async (req, res) => {
+  const { staffid, password } = req.body;
 
-  const user = users.find(u => u.email === email && u.password === password);
+  try {
+    const users = await Userdata.find();
 
-  if (!user) {
-    return res.status(401).json({ message: 'Invalid credentials' });
+    // Find the user with a matching decrypted staffid
+    let matchedUser = null;
+    for (let user of users) {
+      const decryptedStaffid = cryptr.decrypt(user.staffid);
+      if (decryptedStaffid === staffid) {
+        matchedUser = user;
+        break;
+      }
+    }
+
+    if (!matchedUser) {
+      return res.status(401).json({ message: 'Invalid credentials (staffid)' });
+    }
+
+    // Compare password with hashed version
+    const passwordMatch = await bcrypt.compare(password, matchedUser.password);
+    if (!passwordMatch) {
+      return res.status(401).json({ message: 'Invalid credentials (password)' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        id: matchedUser._id,
+        staffid,
+        role: matchedUser.role
+      },
+      SECRET,
+      { expiresIn: '1h' }
+    );
+
+    res.json({ token });
+
+  } catch (err) {
+    console.error('Login error:', err);
+    res.status(500).json({ message: 'Server error during login' });
   }
-
-  const payload = {
-    id: user.id,
-    email: user.email,
-    role: user.role,
-  };
-
-  const token = jwt.sign(payload, SECRET, { expiresIn: '1h' });
-
-  res.json({ token });
-});
-
-// Test endpoint
-app.get('/', (req, res) => {
-  res.send('API running...');
 });
 ////////////////////////////// AUTHENTICATION ////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////
