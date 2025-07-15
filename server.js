@@ -141,6 +141,18 @@ app.get('/api/data', async (req, res) => {
 //   }
 // });
 
+/////////////////////////////////////////////////////////
+//////////////////Logs///////////////////////
+
+const activityLogRoutes = require('./routes/activityLogRoute');
+app.use('/api/activity', activityLogRoutes);
+
+
+/////////////////////////////////////////////////////////
+//////////////////Logs///////////////////////
+
+
+
 
 /////////////////////////////////////////////////////////
 //////////////////Add Departments///////////////////////
@@ -683,11 +695,23 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials (password)' });
     }
 
+
+    // Decrypt the username
+    let decryptedUsername;
+    try {
+      decryptedUsername = cryptr.decrypt(matchedUser.name);
+    } catch (error) {
+      console.error("Username decryption failed:", error.message);
+      return res.status(500).json({ message: 'Failed to decrypt username' });
+    }
+
+
     // Generate JWT token
     const token = jwt.sign(
       {
         id: matchedUser._id,
         staffid,
+        name: decryptedUsername,
         role: matchedUser.role
       },
       SECRET,
