@@ -417,27 +417,33 @@ app.get('/api/userdata', async (req, res) => {
 ////////////////////////////////////////////////////////////////////////////////////
 const appointmentsDataSchema = new mongoose.Schema({
   name: String,
-  visiteemail: String,
+  // visiteemail: String,
   email: String,
   selectedDate: String,
+  AttendeeID: String,
+  eventName: String,
+  eventLocation: String,
 })
 
 const Appointmentsdata = mongoose.model('Appointmentsdata', appointmentsDataSchema);
 
 app.post('/api/appointmentsdata', async (req, res) => {
-  const {name, visiteemail, email, selectedDate} = req.body;
+  const {name, email, selectedDate, AttendeeID, eventName, eventLocation} = req.body;
 
   // Encrypt individual fields
   const encryptedName = cryptr.encrypt(name);
-  const encryptedVisiteEmail = cryptr.encrypt(visiteemail);
+  // const encryptedVisiteEmail = cryptr.encrypt(visiteemail);
   const encryptedEmail = cryptr.encrypt(email);
   // const encryptedSelectedDate = cryptr.encrypt(selectedDate);
 
   const newAppointmentsData = new Appointmentsdata({
     name: encryptedName,
-    visiteemail: encryptedVisiteEmail,
+    // visiteemail: encryptedVisiteEmail,
     email: encryptedEmail,
-    selectedDate
+    selectedDate,
+    AttendeeID,
+    eventName,
+    eventLocation
   });
 
   try{
@@ -467,9 +473,12 @@ app.get('/api/appointmentsdata', async (req, res) => {
         return {
           _id: appointment._id,
           name: cryptr.decrypt(appointment.name),
-          visiteemail: cryptr.decrypt(appointment.visiteemail),
+          // visiteemail: cryptr.decrypt(appointment.visiteemail),
           email: cryptr.decrypt(appointment.email),
-          selectedDate: appointment.selectedDate
+          selectedDate: appointment.selectedDate,
+          AttendeeID: appointment.AttendeeID,
+          eventName: appointment.eventName,
+          eventLocation: appointment.eventLocation
         };
       } catch (decryptError) {
         console.error('Decryption error:', decryptError);
