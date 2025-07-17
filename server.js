@@ -193,6 +193,67 @@ app.get('/api/departmentsdata', async (req, res) => {
 
 
 
+
+
+/////////////////////////////////////////////////////////
+//////////////////Add & Delete Event Venues///////////////////////
+
+const eventsSchemea = new mongoose.Schema({
+  eventVenue: String,  
+});
+
+const eventsVenuesData = mongoose.model('eventsVenuesData', eventsSchemea);
+
+// Updated POST endpoint to handle all the fields
+app.post('/api/eventvenues', async (req, res) => {
+  const { eventVenue } = req.body;
+  const newEventsVenues = new eventsVenuesData({
+    eventVenue
+  });
+
+  try {
+    const savedData = await newEventsVenues.save();
+    res.json(savedData);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+});
+
+// GET endpoint to retrieve data
+app.get('/api/eventvenues', async (req, res) => {
+  try {
+    const data = await eventsVenuesData.find();
+    res.json(data);
+  } catch (err) {
+    res.status(400).send(err);
+  }
+});
+
+
+// Delete a department by ID from Departments collection
+app.delete('/api/eventvenues/:_id', async (req, res) => {
+  try {
+    const userId = req.params._id;
+    const result = await eventsVenuesData.findByIdAndDelete(userId);
+
+    if (result) {
+      res.status(200).json({ message: 'Venue deleted successfully' });
+    } else {
+      res.status(404).json({ message: 'Venue not found' });
+    }
+  } catch (error) {
+    console.error('Error deleting Department:', error);
+    res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+/////////////////////Event Venues////////////////////////
+///////////////////////////////////////////////////////
+
+
+
+
+
 /////////////////////////////////////////////////////////
 //////////////////Add Visitors Badge///////////////////////
 
