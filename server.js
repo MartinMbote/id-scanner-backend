@@ -482,14 +482,16 @@ const appointmentsDataSchema = new mongoose.Schema({
   email: String,
   selectedDate: String,
   AttendeeID: String,
+  phoneNo: String,
   eventName: String,
   eventLocation: String,
+  status: String,
 })
 
 const Appointmentsdata = mongoose.model('Appointmentsdata', appointmentsDataSchema);
 
 app.post('/api/appointmentsdata', async (req, res) => {
-  const {name, email, selectedDate, AttendeeID, eventName, eventLocation} = req.body;
+  const {name, email, selectedDate, AttendeeID, phoneNo, eventName, eventLocation, status} = req.body;
 
   // Encrypt individual fields
   const encryptedName = cryptr.encrypt(name);
@@ -503,8 +505,10 @@ app.post('/api/appointmentsdata', async (req, res) => {
     email: encryptedEmail,
     selectedDate,
     AttendeeID,
+    phoneNo,
     eventName,
-    eventLocation
+    eventLocation,
+    status
   });
 
   try{
@@ -538,8 +542,10 @@ app.get('/api/appointmentsdata', async (req, res) => {
           email: cryptr.decrypt(appointment.email),
           selectedDate: appointment.selectedDate,
           AttendeeID: appointment.AttendeeID,
+          phoneNo: appointment.phoneNo,
           eventName: appointment.eventName,
-          eventLocation: appointment.eventLocation
+          eventLocation: appointment.eventLocation,
+          status: appointment.status
         };
       } catch (decryptError) {
         console.error('Decryption error:', decryptError);
@@ -556,10 +562,35 @@ app.get('/api/appointmentsdata', async (req, res) => {
 });
 
 
-////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////APPOINTMENTS TO UPDATE STATUS & CHOOSEN BADGE//////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
 
+app.put('/api/appointmentsdata/:attendeeID', async (req, res) => {
+  const { attendeeID } = req.params;
+  const { badgeId, status } = req.body;
+
+  try {
+    const updatedAppointment = await Appointmentsdata.findOneAndUpdate(
+      { AttendeeID: attendeeID },
+      { $set: { badgeId, status } }, // Add fields as needed
+      { new: true }
+    );
+
+    if (!updatedAppointment) {
+      return res.status(404).json({ error: 'Appointment not found' });
+    }
+
+    res.status(200).json(updatedAppointment);
+  } catch (error) {
+    console.error('Error updating appointment:', error);
+    res.status(500).json({ error: 'Failed to update appointment' });
+  }
+});
+
+
+///////////////////////////APPOINTMENTS TO UPDATE STATUS & CHOOSEN BADGE//////////////
+////////////////////////////////////////////////////////////////////////////////////
 
 
 //////////////////////////
