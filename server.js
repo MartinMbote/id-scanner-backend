@@ -486,12 +486,13 @@ const appointmentsDataSchema = new mongoose.Schema({
   eventName: String,
   eventLocation: String,
   status: String,
+  checkInTime: String,
 })
 
 const Appointmentsdata = mongoose.model('Appointmentsdata', appointmentsDataSchema);
 
 app.post('/api/appointmentsdata', async (req, res) => {
-  const {name, email, selectedDate, AttendeeID, phoneNo, eventName, eventLocation, status} = req.body;
+  const {name, email, selectedDate, AttendeeID, phoneNo, eventName, eventLocation, status, checkInTime} = req.body;
 
   // Encrypt individual fields
   const encryptedName = cryptr.encrypt(name);
@@ -508,7 +509,8 @@ app.post('/api/appointmentsdata', async (req, res) => {
     phoneNo,
     eventName,
     eventLocation,
-    status
+    status,
+    checkInTime
   });
 
   try{
@@ -545,7 +547,8 @@ app.get('/api/appointmentsdata', async (req, res) => {
           phoneNo: appointment.phoneNo,
           eventName: appointment.eventName,
           eventLocation: appointment.eventLocation,
-          status: appointment.status
+          status: appointment.status,
+          checkInTime: appointment.checkInTime
         };
       } catch (decryptError) {
         console.error('Decryption error:', decryptError);
@@ -568,12 +571,12 @@ app.get('/api/appointmentsdata', async (req, res) => {
 
 app.put('/api/appointmentsdata/:attendeeID', async (req, res) => {
   const { attendeeID } = req.params;
-  const { badgeId, status } = req.body;
+  const { badgeId, status, checkInTime } = req.body;
 
   try {
     const updatedAppointment = await Appointmentsdata.findOneAndUpdate(
       { AttendeeID: attendeeID },
-      { $set: { badgeId, status } }, // Add fields as needed
+      { $set: { badgeId, status, checkInTime } }, // Add fields as needed
       { new: true }
     );
 
