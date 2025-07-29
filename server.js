@@ -486,13 +486,15 @@ const appointmentsDataSchema = new mongoose.Schema({
   eventName: String,
   eventLocation: String,
   status: String,
+  visitorTag: String,
+  badgeId: String,
   checkInTime: String,
 })
 
 const Appointmentsdata = mongoose.model('Appointmentsdata', appointmentsDataSchema);
 
 app.post('/api/appointmentsdata', async (req, res) => {
-  const {name, email, selectedDate, AttendeeID, phoneNo, eventName, eventLocation, status, checkInTime} = req.body;
+  const {name, email, selectedDate, AttendeeID, phoneNo, eventName, eventLocation, status, visitorTag, badgeId, checkInTime} = req.body;
 
   // Encrypt individual fields
   const encryptedName = cryptr.encrypt(name);
@@ -510,6 +512,8 @@ app.post('/api/appointmentsdata', async (req, res) => {
     eventName,
     eventLocation,
     status,
+    visitorTag,
+    badgeId,
     checkInTime
   });
 
@@ -548,6 +552,8 @@ app.get('/api/appointmentsdata', async (req, res) => {
           eventName: appointment.eventName,
           eventLocation: appointment.eventLocation,
           status: appointment.status,
+          visitorTag: appointment.visitorTag,
+          badgeId: appointment.badgeId,
           checkInTime: appointment.checkInTime
         };
       } catch (decryptError) {
@@ -565,18 +571,18 @@ app.get('/api/appointmentsdata', async (req, res) => {
 });
 
 
-///////////////////////////APPOINTMENTS TO UPDATE STATUS & CHOOSEN BADGE//////////////
+///////////////////////////UPDATE APPOINTMENTS STATUS & CHOOSEN BADGE//////////////
 ////////////////////////////////////////////////////////////////////////////////////
 
 
 app.put('/api/appointmentsdata/:attendeeID', async (req, res) => {
   const { attendeeID } = req.params;
-  const { badgeId, status, checkInTime } = req.body;
+  const { badgeId, visitorTag, status, checkInTime } = req.body;
 
   try {
     const updatedAppointment = await Appointmentsdata.findOneAndUpdate(
       { AttendeeID: attendeeID },
-      { $set: { badgeId, status, checkInTime } }, // Add fields as needed
+      { $set: { badgeId, visitorTag, status, checkInTime } }, // Add fields as needed
       { new: true }
     );
 
