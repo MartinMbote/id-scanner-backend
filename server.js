@@ -332,30 +332,65 @@ const dataSchemaB = new mongoose.Schema({
 const DataB = mongoose.model('DataB', dataSchemaB);
 
 // Route to move a document from CollectionA to CollectionB
+// app.post('/api/migrate', async (req, res) => {
+//   try {
+//       const documentId = req.body.id;
+
+//       // Find the document in CollectionA
+//       const document = await Data.findById(documentId);
+
+//       if (!document) {
+//           return res.status(404).json({ message: 'Document not found' });
+//       }
+
+//       // Save the document to CollectionB
+//       const migratedDocument = new DataB(document.toObject());
+//       await migratedDocument.save();
+
+//       // Remove the document from CollectionA
+//       await Data.findByIdAndDelete(documentId);
+
+//       res.json({ message: 'Document migrated successfully' });
+//   } catch (error) {
+//       res.status(500).json({ message: error.message });
+//       console.log(error.message);
+//   }
+// });
+
+
 app.post('/api/migrate', async (req, res) => {
   try {
-      const documentId = req.body.id;
+    const documentId = req.body.id;
 
-      // Find the document in CollectionA
-      const document = await Data.findById(documentId);
+    // Try to find the document in Data
+    let document = await Data.findById(documentId);
 
-      if (!document) {
-          return res.status(404).json({ message: 'Document not found' });
-      }
+    // If not found in Data, try Appointmentsdata
+    let sourceModel = Data;
+    if (!document) {
+      document = await Appointmentsdata.findById(documentId);
+      sourceModel = Appointmentsdata;
+    }
 
-      // Save the document to CollectionB
-      const migratedDocument = new DataB(document.toObject());
-      await migratedDocument.save();
+    // If still not found, return 404
+    if (!document) {
+      return res.status(404).json({ message: 'Document not found in both collections' });
+    }
 
-      // Remove the document from CollectionA
-      await Data.findByIdAndDelete(documentId);
+    // Migrate to DataB
+    const migratedDocument = new DataB(document.toObject());
+    await migratedDocument.save();
 
-      res.json({ message: 'Document migrated successfully' });
+    // Delete from the source collection
+    await sourceModel.findByIdAndDelete(documentId);
+
+    res.json({ message: 'Document migrated successfully' });
   } catch (error) {
-      res.status(500).json({ message: error.message });
-      console.log(error.message);
+    console.error(error.message);
+    res.status(500).json({ message: error.message });
   }
 });
+
 ////////////////////////migration////////////////////////
 /////////////////////////////////////////////////////////
 
