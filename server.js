@@ -28,13 +28,14 @@ const dataSchema = new mongoose.Schema({
   visitorTag: String,
   cleared: String,
   badgeId: String,
+  checkoutTime: String,
 });
 
 const Data = mongoose.model('Data', dataSchema);
 
 // Updated POST endpoint to handle all the fields
 app.post('/api/data', async (req, res) => {
-  const { phone, department, sharedString, idName, dateTime, visitorTag, badgeId } = req.body;
+  const { phone, department, sharedString, idName, dateTime, visitorTag, badgeId, checkoutTime } = req.body;
 
   // Encrypt individual fields
   const encryptedPhone = cryptr.encrypt(phone);
@@ -52,7 +53,8 @@ app.post('/api/data', async (req, res) => {
     idName: encryptedIdName,
     dateTime,
     visitorTag,    
-    badgeId
+    badgeId,
+    checkoutTime
   });
 
   try {
@@ -80,7 +82,8 @@ app.get('/api/data', async (req, res) => {
           dateTime: visitor.dateTime,
           visitorTag: visitor.visitorTag,
           cleared: visitor.cleared,
-          badgeId: visitor.badgeId
+          badgeId: visitor.badgeId,
+          checkoutTime: visitor.checkoutTime
         };
       } catch (decryptError) {
         console.error('Decryption error:', decryptError);
@@ -327,6 +330,7 @@ const dataSchemaB = new mongoose.Schema({
   dateTime: String,
   visitorTag: String,
   cleared: String,
+  checkoutTime: String,
 });
 
 const DataB = mongoose.model('DataB', dataSchemaB);
@@ -358,9 +362,44 @@ const DataB = mongoose.model('DataB', dataSchemaB);
 // });
 
 
+// app.post('/api/migrate', async (req, res) => {
+//   try {
+//     const documentId = req.body.id;
+
+//     // Try to find the document in Data
+//     let document = await Data.findById(documentId);
+
+//     // If not found in Data, try Appointmentsdata
+//     let sourceModel = Data;
+//     if (!document) {
+//       document = await Appointmentsdata.findById(documentId);
+//       sourceModel = Appointmentsdata;
+//     }
+
+//     // If still not found, return 404
+//     if (!document) {
+//       return res.status(404).json({ message: 'Document not found in both collections' });
+//     }
+
+//     // Migrate to DataB
+//     const migratedDocument = new DataB(document.toObject());
+//     await migratedDocument.save();
+
+//     // Delete from the source collection
+//     await sourceModel.findByIdAndDelete(documentId);
+
+//     res.json({ message: 'Document migrated successfully' });
+//   } catch (error) {
+//     console.error(error.message);
+//     res.status(500).json({ message: error.message });
+//   }
+// });
+
+
 app.post('/api/migrate', async (req, res) => {
   try {
     const documentId = req.body.id;
+    const checkoutTime = req.body.checkoutTime; // <-- Step 1: get checkout time
 
     // Try to find the document in Data
     let document = await Data.findById(documentId);
@@ -377,19 +416,24 @@ app.post('/api/migrate', async (req, res) => {
       return res.status(404).json({ message: 'Document not found in both collections' });
     }
 
+    // Convert to plain object and add checkoutTime
+    const documentObject = document.toObject();
+    documentObject.checkoutTime = checkoutTime; // <-- Step 2: add checkout time
+
     // Migrate to DataB
-    const migratedDocument = new DataB(document.toObject());
+    const migratedDocument = new DataB(documentObject);
     await migratedDocument.save();
 
     // Delete from the source collection
     await sourceModel.findByIdAndDelete(documentId);
 
-    res.json({ message: 'Document migrated successfully' });
+    res.json({ message: 'Document migrated successfully with checkoutTime' });
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: error.message });
   }
 });
+
 
 ////////////////////////migration////////////////////////
 /////////////////////////////////////////////////////////
@@ -397,10 +441,75 @@ app.post('/api/migrate', async (req, res) => {
 
 ///////////////////////Retrieve Migrated Data from DataB//////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
+// app.get('/api/datab', async (req, res) => {
+//   try {
+//     const documents = await DataB.find(); // Fetch all documents from DataB
+//     res.json(documents);
+//   } catch (error) {
+//     console.error(error.message);
+//     res.status(500).json({ message: 'Error fetching data from DataB' });
+//   }
+// });
+
+
+// app.get('/api/datab', async (req, res) => {
+//   try {
+//     const documents = await DataB.find(); // Fetch all documents from DataB
+
+//     // Decrypt each of the Visitor's fields
+//     const decryptedMigratedInfo = documents.map(visitor => {
+//       try {
+//         return {
+//           _id: visitor._id,
+//           phone: visitor.phone ? cryptr.decrypt(visitor.phone) : null,
+//           department: visitor.department,
+//           sharedString: visitor.sharedString ? cryptr.decrypt(visitor.sharedString) : null,
+//           idName: visitor.idName ? cryptr.decrypt(visitor.idName) : null,
+//           dateTime: visitor.dateTime,
+//           visitorTag: visitor.visitorTag,
+//           cleared: visitor.cleared
+//         };
+//       } catch (decryptError) {
+//         console.error('Decryption error:', decryptError);
+//         return null; // Skip this visitor if decryption fails
+//       }
+//     }).filter(visitor => visitor !== null);
+    
+
+//     res.json(decryptedMigratedInfo);
+//   } catch (error) {
+//     console.error(error.message);
+//     res.status(500).json({ message: 'Error fetching data from DataB' });
+//   }
+// });
+
+
+const looksEncrypted = (value) =>
+  typeof value === 'string' && value.length > 20 && /^[A-Za-z0-9+/=]+$/.test(value);
+
 app.get('/api/datab', async (req, res) => {
   try {
     const documents = await DataB.find(); // Fetch all documents from DataB
-    res.json(documents);
+
+    const decryptedMigratedInfo = documents.map(visitor => {
+      try {
+        return {
+          _id: visitor._id,
+          phone: looksEncrypted(visitor.phone) ? cryptr.decrypt(visitor.phone) : visitor.phone,
+          department: visitor.department,
+          sharedString: looksEncrypted(visitor.sharedString) ? cryptr.decrypt(visitor.sharedString) : visitor.sharedString,
+          idName: looksEncrypted(visitor.idName) ? cryptr.decrypt(visitor.idName) : visitor.idName,
+          dateTime: visitor.dateTime,
+          visitorTag: visitor.visitorTag,
+          cleared: visitor.cleared
+        };
+      } catch (decryptError) {
+        console.error('Decryption error:', decryptError);
+        return null; // Skip this visitor if decryption fails
+      }
+    }).filter(visitor => visitor !== null);
+
+    res.json(decryptedMigratedInfo);
   } catch (error) {
     console.error(error.message);
     res.status(500).json({ message: 'Error fetching data from DataB' });
@@ -410,8 +519,10 @@ app.get('/api/datab', async (req, res) => {
 
 
 
+
 ///////////////////////Retrieve Migrated Data from DataB//////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 
