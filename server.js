@@ -869,8 +869,7 @@ app.delete('/api/data/:_id', async (req, res) => {
 //////////////////////////////Email Serrvices - Adding Users/////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
 const transporter = nodemailer.createTransport({
-  host: "smtp.ethereal.email",
-  port: 587,
+  service: 'gmail',
   secure: false, // true for port 465, false for other ports
   auth: {
     user: process.env.EMAIL_USER,
