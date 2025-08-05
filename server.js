@@ -902,8 +902,7 @@ app.post('/send-email', (req, res) => {
 //////////////////////////////Email Serrvices - Adding Appointments//////////////////
 /////////////////////////////////////////////////////////////////////////////////////
 const appointmentTransporter = nodemailer.createTransport({
-  host: "smtp.ethereal.email",
-  port: 587,
+  service: 'gmail',
   secure: false, // true for port 465, false for other ports
   auth: {
     user: process.env.EMAIL_USER,
