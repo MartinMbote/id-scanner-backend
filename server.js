@@ -10,7 +10,8 @@ const jwt = require('jsonwebtoken');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 
-app.use(cors());
+// app.use(cors());
+app.use(cors({ origin: '*' })); // Open for testing — restrict later
 app.use(express.json());
 
 // Replace this with your actual MongoDB connection string
@@ -29,13 +30,14 @@ const dataSchema = new mongoose.Schema({
   cleared: String,
   badgeId: String,
   checkoutTime: String,
+  licencePlateNo: String,
 });
 
 const Data = mongoose.model('Data', dataSchema);
 
 // Updated POST endpoint to handle all the fields
 app.post('/api/data', async (req, res) => {
-  const { phone, department, sharedString, idName, dateTime, visitorTag, badgeId, checkoutTime } = req.body;
+  const { phone, department, sharedString, idName, dateTime, visitorTag, badgeId, checkoutTime, licencePlateNo } = req.body;
 
   // Encrypt individual fields
   const encryptedPhone = cryptr.encrypt(phone);
@@ -54,7 +56,8 @@ app.post('/api/data', async (req, res) => {
     dateTime,
     visitorTag,    
     badgeId,
-    checkoutTime
+    checkoutTime,
+    licencePlateNo
   });
 
   try {
@@ -83,7 +86,8 @@ app.get('/api/data', async (req, res) => {
           visitorTag: visitor.visitorTag,
           cleared: visitor.cleared,
           badgeId: visitor.badgeId,
-          checkoutTime: visitor.checkoutTime
+          checkoutTime: visitor.checkoutTime,
+          licencePlateNo: visitor.licencePlateNo
         };
       } catch (decryptError) {
         console.error('Decryption error:', decryptError);
@@ -938,7 +942,7 @@ app.post('/send-appointment-email', (req, res) => {
 
 app.use(bodyParser.json());
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 const SECRET = process.env.JWT_SECRET || 'supersecretkey';
 
 // Login route
@@ -1003,4 +1007,4 @@ app.post('/login', async (req, res) => {
 
 
 // const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, '0.0.0.0', () => console.log(`Server running on port ${PORT}`));
