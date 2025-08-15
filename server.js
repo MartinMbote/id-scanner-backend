@@ -15,7 +15,7 @@ app.use(cors({ origin: '*' })); // Open for testing — restrict later
 app.use(express.json());
 
 // Replace this with your actual MongoDB connection string
-const mongoURI = 'mongodb://localhost:27017/';
+const mongoURI = 'mongodb://localhost:27017/test'; // if using test DB
 
 mongoose.connect(mongoURI);
 
