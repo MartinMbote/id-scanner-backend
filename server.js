@@ -881,7 +881,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-app.post('/send-email', (req, res) => {
+app.post('/api/send-email', (req, res) => {
   const { email, subject, message } = req.body;
 
   const mailOptions = {
@@ -946,7 +946,7 @@ const PORT = process.env.PORT || 5001;
 const SECRET = process.env.JWT_SECRET || 'supersecretkey';
 
 // Login route
-app.post('/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
   const { staffid, password } = req.body;
 
   try {
