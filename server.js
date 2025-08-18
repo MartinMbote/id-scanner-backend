@@ -914,7 +914,7 @@ const appointmentTransporter = nodemailer.createTransport({
   },
 });
 
-app.post('/send-appointment-email', (req, res) => {
+app.post('/api/send-appointment-email', (req, res) => {
   const { email, subject, message } = req.body;
 
   const mailOptions = {
