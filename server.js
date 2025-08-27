@@ -504,6 +504,7 @@ app.get('/api/datab', async (req, res) => {
           sharedString: looksEncrypted(visitor.sharedString) ? cryptr.decrypt(visitor.sharedString) : visitor.sharedString,
           idName: looksEncrypted(visitor.idName) ? cryptr.decrypt(visitor.idName) : visitor.idName,
           dateTime: visitor.dateTime,
+          checkoutTime: visitor.checkoutTime,
           visitorTag: visitor.visitorTag,
           cleared: visitor.cleared
         };
